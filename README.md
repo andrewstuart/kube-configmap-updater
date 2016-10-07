@@ -12,4 +12,5 @@ up.
 
 ## TODO
 
-[ ] Use a rollout
+- Use a rollout
+- Allow label value to control behavior
