@@ -1,5 +1,5 @@
 FROM golang
 
-CMD /configmap-updater
+CMD /kube-configmap-updater
 
-ADD configmap-updater /
+ADD kube-configmap-updater /
