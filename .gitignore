@@ -1,1 +1,2 @@
-configmap-updater
+kube-configmap-updater
+vendor

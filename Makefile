@@ -1,4 +1,4 @@
-REG=docker.astuart.co:5000/k8s
+REG=andrewstuart
 BINARY?=$(shell basename $(PWD))
 IMAGE:=$(BINARY)
 
@@ -8,9 +8,12 @@ TAG=$(REG)/$(IMAGE)
 
 $(IMAGE): *.go
 	go build -o $(IMAGE)
-	# upx $(IMAGE)
+
+clean:
+	-rm $(IMAGE)
 	
 build: $(IMAGE)
+	-upx $(IMAGE)
 	docker build -t $(TAG) .
 
 push: build

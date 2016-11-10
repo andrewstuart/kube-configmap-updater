@@ -17,12 +17,12 @@ package main
 import (
 	"log"
 
-	"k8s.io/client-go/1.4/kubernetes"
-	"k8s.io/client-go/1.4/pkg/api"
-	"k8s.io/client-go/1.4/pkg/api/v1"
-	"k8s.io/client-go/1.4/pkg/labels"
-	"k8s.io/client-go/1.4/pkg/watch"
-	"k8s.io/client-go/1.4/rest"
+	"github.com/golang/glog"
+
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/watch"
+	"k8s.io/client-go/rest"
 )
 
 const (
@@ -30,12 +30,10 @@ const (
 )
 
 func main() {
-	sel, err := labels.Parse(updateKey)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	glog.Infof("Starting")
 	cfg, err := rest.InClusterConfig()
+	glog.Infof("Cluster config: %v", cfg)
+
 	if err != nil {
 		log.Fatal("Cluster config", err)
 	}
@@ -43,12 +41,14 @@ func main() {
 	cli, err := kubernetes.NewForConfig(cfg)
 
 	for {
-		w, err := cli.ConfigMaps("").Watch(api.ListOptions{})
+		w, err := cli.ConfigMaps("").Watch(v1.ListOptions{})
 		if err != nil {
-			log.Println("Watch error", err)
+			glog.Error("Watch error", err)
 		}
 
 		for evt := range w.ResultChan() {
+
+			glog.Infof("Watch event triggered: %#v", evt)
 
 			et := watch.EventType(evt.Type)
 			if et != watch.Added && et != watch.Modified {
@@ -58,9 +58,11 @@ func main() {
 			case *v1.ConfigMap:
 				n, ns := item.Name, item.Namespace
 
-				pods, err := cli.Pods(ns).List(api.ListOptions{LabelSelector: sel})
+				glog.Infof("Configmap %s/%s updated", n, ns)
+
+				pods, err := cli.Pods(ns).List(v1.ListOptions{LabelSelector: updateKey})
 				if err != nil {
-					log.Println("Pod query err", err)
+					glog.Error("Pod query error", err)
 					continue
 				}
 

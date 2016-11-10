@@ -1,0 +1,9 @@
+package: astuart.co/kube-configmap-updater
+import:
+- package: k8s.io/client-go
+  version: ^2.0.0-alpha.0
+  subpackages:
+  - kubernetes
+  - pkg/api/v1
+  - pkg/watch
+  - rest
