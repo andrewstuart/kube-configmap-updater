@@ -17,8 +17,6 @@ package main
 import (
 	"log"
 
-	"github.com/golang/glog"
-
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/watch"
@@ -30,9 +28,7 @@ const (
 )
 
 func main() {
-	glog.Infof("Starting")
 	cfg, err := rest.InClusterConfig()
-	glog.Infof("Cluster config: %v", cfg)
 
 	if err != nil {
 		log.Fatal("Cluster config", err)
@@ -43,12 +39,12 @@ func main() {
 	for {
 		w, err := cli.ConfigMaps("").Watch(v1.ListOptions{})
 		if err != nil {
-			glog.Error("Watch error", err)
+			log.Println("Watch error", err)
 		}
 
 		for evt := range w.ResultChan() {
 
-			glog.Infof("Watch event triggered: %#v", evt)
+			log.Println("Watch event triggered: %#v", evt)
 
 			et := watch.EventType(evt.Type)
 			if et != watch.Added && et != watch.Modified {
@@ -58,11 +54,11 @@ func main() {
 			case *v1.ConfigMap:
 				n, ns := item.Name, item.Namespace
 
-				glog.Infof("Configmap %s/%s updated", n, ns)
+				log.Printf("Configmap %s/%s updated\n", n, ns)
 
 				pods, err := cli.Pods(ns).List(v1.ListOptions{LabelSelector: updateKey})
 				if err != nil {
-					glog.Error("Pod query error", err)
+					log.Println("Pod query error", err)
 					continue
 				}
 
@@ -73,7 +69,12 @@ func main() {
 
 						//If a volume is found in the spec that matches the updated volume name, delete the pod
 						if vol.ConfigMap != nil && vol.ConfigMap.Name == n {
-							cli.Pods(ns).Delete(pod.Name, nil)
+							switch pod.ObjectMeta.Labels[updateKey] {
+							case "Delete":
+								cli.Pods(ns).Delete(pod.Name, nil)
+							default:
+								log.Println("Unknown behavior: ", pod.ObjectMeta.Labels[updateKey])
+							}
 							continue podLoop
 						}
 					}

@@ -20,4 +20,4 @@ push: build
 	docker push $(TAG)
 
 deploy: push
-	kubectl delete po --namespace kube-system -l app=$(IMAGE)
+	kubectl delete po --namespace kube-system -l app=$(IMAGE) --grace-period=0

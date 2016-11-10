@@ -1,19 +1,21 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: configmap-updater
+  name: kube-configmap-updater
   namespace: kube-system
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: configmap-updater
+        app: kube-configmap-updater
         tier: system
     spec:
       containers:
       - name: refresher
-        image: docker.astuart.co:5000/k8s/configmap-updater
+        command:
+        - /kube-configmap-updater
+        image: andrewstuart/kube-configmap-updater
         imagePullPolicy: Always
         resources:
           requests: &r
